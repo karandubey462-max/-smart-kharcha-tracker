@@ -6,11 +6,11 @@ import { autoCategory } from '../utils/helpers';
 import { getCategoryById } from '../data/demoData';
 import { formatCurrency } from '../utils/helpers';
 
-const TABS = ['Paste SMS', 'Auto Watch', 'Setup Guide'];
+const TABS = ['Paste SMS', 'Auto Webhook', 'Setup Guide'];
 
 export default function SMSImport() {
   const navigate = useNavigate();
-  const { importTransactions, showToast, transactions } = useStore();
+  const { importTransactions, showToast, transactions, user } = useStore();
 
   const [tab, setTab]           = useState('Paste SMS');
   const [smsText, setSmsText]   = useState('');
@@ -111,7 +111,7 @@ export default function SMSImport() {
       <div className="scroll-row" style={{ padding: '0 16px 12px', gap: 8 }}>
         {TABS.map(t => (
           <button key={t} className={`chip ${tab === t ? 'chip-active' : 'chip-default'}`} onClick={() => setTab(t)}>
-            {t === 'Paste SMS' ? '📋 Paste SMS' : t === 'Auto Watch' ? '🔄 Auto Watch' : '⚙️ Native Setup'}
+            {t === 'Paste SMS' ? '📋 Paste SMS' : t === 'Auto Webhook' ? '📡 Auto Webhook (Real)' : '⚙️ Native App (CLI)'}
           </button>
         ))}
       </div>
@@ -235,80 +235,84 @@ export default function SMSImport() {
           </div>
         )}
 
-        {/* ── Tab 2: Auto Watch ── */}
-        {tab === 'Auto Watch' && (
+        {/* ── Tab 2: Auto Webhook ── */}
+        {tab === 'Auto Webhook' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {/* Status card */}
             <div style={{
-              background: watching
-                ? 'rgba(16,185,129,0.08)'
-                : 'var(--bg-secondary)',
-              border: `1px solid ${watching ? 'rgba(16,185,129,0.3)' : 'var(--border-subtle)'}`,
-              borderRadius: 16, padding: 20, textAlign: 'center',
+              background: 'linear-gradient(135deg, rgba(108,99,255,0.12), rgba(167,139,250,0.08))',
+              border: '1px solid var(--border-accent)',
+              borderRadius: 16, padding: 18,
             }}>
-              <div style={{ fontSize: 56, marginBottom: 12 }}>{watching ? '📡' : '💤'}</div>
-              <p style={{ fontSize: 16, fontWeight: 700, marginBottom: 6 }}>
-                {watching ? 'Watching for SMS…' : 'SMS Watcher Off'}
+              <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--accent-primary)', marginBottom: 8 }}>
+                📡 Webhook Auto-Read (Recommended)
               </p>
-              <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 16 }}>
-                {watching
-                  ? 'New PhonePe SMS will be auto-detected and imported every few seconds.'
-                  : 'When enabled, every new PhonePe / bank SMS is auto-parsed and added to your transactions.'
-                }
+              <p style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                You can auto-track transactions in the background using a free SMS Forwarder app.
+                Whenever you get a payment SMS, it is sent to your personal webhook and saved instantly!
               </p>
-              {watching && (
-                <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginBottom: 12 }}>
-                  {[0,1,2].map(i => (
-                    <div key={i} style={{
-                      width: 8, height: 8, borderRadius: '50%', background: 'var(--color-income)',
-                      animation: `pulse 1s ${i * 0.3}s ease-in-out infinite`,
-                    }} />
-                  ))}
-                </div>
-              )}
-              <button
-                className={`btn btn-full ${watching ? 'btn-danger' : 'btn-primary'}`}
-                onClick={watching ? () => setWatching(false) : simulateAutoWatch}
-              >
-                {watching ? '⏹ Stop Watching' : '▶ Start Auto Watch (Demo)'}
-              </button>
             </div>
 
-            {/* Auto-imported live feed */}
-            {autoImported.length > 0 && (
-              <>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <p style={{ fontSize: 13, fontWeight: 700 }}>📥 Auto-Imported ({autoImported.length})</p>
-                  <button style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 12, cursor: 'pointer' }}
-                    onClick={() => setAutoImported([])}>Clear</button>
-                </div>
-                <div className="card">
-                  {autoImported.map((t, i) => (
-                    <div key={t.id} style={{
-                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                      padding: '10px 14px',
-                      borderBottom: i < autoImported.length - 1 ? '1px solid var(--border-subtle)' : 'none',
-                      animation: 'slideDown 0.3s ease both',
-                    }}>
-                      <div>
-                        <p style={{ fontSize: 13, fontWeight: 600 }}>{t.description.slice(0, 28)}</p>
-                        <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t.date} · Auto SMS</p>
-                      </div>
-                      <p style={{ fontSize: 14, fontWeight: 700, color: t.type === 'income' ? 'var(--color-income)' : 'var(--color-expense)', fontVariantNumeric: 'tabular-nums' }}>
-                        {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-
-            {/* Note about native */}
-            <div style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.2)', borderRadius: 12, padding: 14 }}>
-              <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-lent)', marginBottom: 6 }}>⚠️ Demo Mode</p>
-              <p style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                The watcher above uses sample data to simulate the flow. For <strong>real</strong> SMS reading, switch to the "Native Setup" tab to install the Android wrapper.
+            {/* Webhook URL Display */}
+            <div className="card" style={{ padding: 14 }}>
+              <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 8 }}>
+                YOUR PERSONAL WEBHOOK URL
               </p>
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                background: 'var(--bg-primary)', border: '1px solid var(--border-subtle)',
+                borderRadius: 10, padding: 8, paddingLeft: 12,
+              }}>
+                <code style={{
+                  fontSize: 10, color: 'var(--accent-primary)', flex: 1,
+                  wordBreak: 'break-all', fontFamily: 'monospace',
+                }}>
+                  {`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/webhook/sms/${user?._id || 'guest_user_id'}`}
+                </code>
+                <button
+                  className="btn btn-ghost btn-sm"
+                  style={{ whiteSpace: 'nowrap', padding: '6px 12px', height: 'auto', border: '1px solid var(--border-default)' }}
+                  onClick={() => {
+                    const url = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/webhook/sms/${user?._id || ''}`;
+                    navigator.clipboard.writeText(url);
+                    showToast('Webhook URL copied! 📋');
+                  }}
+                >
+                  Copy URL
+                </button>
+              </div>
+            </div>
+
+            {/* Steps card */}
+            <div className="card" style={{ padding: 14 }}>
+              <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 12 }}>3-STEP AUTO-READ SETUP</p>
+              {[
+                {
+                  step: 1,
+                  title: 'Install "SMS to Webhook" App',
+                  desc: 'Go to Google Play Store and install any free app like "SMS to Webhook" or "SMS Forwarder" (by Hitesh Sahu).'
+                },
+                {
+                  step: 2,
+                  title: 'Configure Webhook Endpoint',
+                  desc: 'In the SMS Forwarder app, create a new rule, paste your personal Webhook URL (from above), and set the HTTP method to "POST".'
+                },
+                {
+                  step: 3,
+                  title: 'Set up SMS Filters',
+                  desc: 'Add text filters in the app so it only forwards messages containing words like: debited, credited, PhonePe, Paytm, GPay, or your bank name.'
+                }
+              ].map((s) => (
+                <div key={s.step} style={{ display: 'flex', gap: 12, padding: '12px 0', borderTop: s.step > 1 ? '1px solid var(--border-subtle)' : 'none' }}>
+                  <div style={{
+                    width: 24, height: 24, borderRadius: '50%', background: 'rgba(108,99,255,0.15)', color: 'var(--accent-primary)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, flexShrink: 0
+                  }}>{s.step}</div>
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 2 }}>{s.title}</p>
+                    <p style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{s.desc}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}

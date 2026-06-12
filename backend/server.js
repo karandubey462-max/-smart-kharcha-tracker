@@ -45,10 +45,12 @@ app.get('/health',  (_, res) => res.json({ status: 'ok', timestamp: new Date() }
 app.use('/api/auth',         require('./routes/auth'));
 app.use('/api/transactions', require('./routes/transactions'));
 app.use('/api/lend-borrow',  require('./routes/lendBorrow'));
+app.use('/api/webhook',      require('./routes/webhook'));
 // Vercel strips the /api prefix before forwarding — mount without prefix too
 app.use('/auth',         require('./routes/auth'));
 app.use('/transactions', require('./routes/transactions'));
 app.use('/lend-borrow',  require('./routes/lendBorrow'));
+app.use('/webhook',      require('./routes/webhook'));
 
 // ── Budget Routes (inline) ──
 app.get('/api/budget', auth, async (req, res) => {
