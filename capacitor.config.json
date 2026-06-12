@@ -3,6 +3,8 @@
   "appName": "Smart Kharcha",
   "webDir": "dist",
   "server": {
+    "url": "https://smart-kharcha.vercel.app",
+    "cleartext": false,
     "androidScheme": "https"
   }
 }
