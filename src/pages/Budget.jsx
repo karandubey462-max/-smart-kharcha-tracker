@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useStore from '../store/useStore';
 import { formatCurrency, getBudgetStatus } from '../utils/helpers';
@@ -9,9 +9,15 @@ export default function Budget() {
   const { budget, setBudget, transactions, showToast } = useStore();
   const [editing, setEditing] = useState(false);
   const [totalBudget, setTotalBudget] = useState(budget.totalBudget);
-  const [catBudgets, setCatBudgets]   = useState(
-    Object.fromEntries((budget.categories || []).map(c => [c.categoryId, c.allocated]))
-  );
+  const [catBudgets, setCatBudgets]   = useState({});
+
+  // Sync state with store updates when data fetches from database
+  useEffect(() => {
+    setTotalBudget(budget.totalBudget);
+    setCatBudgets(
+      Object.fromEntries((budget.categories || []).map(c => [c.categoryId, c.allocated]))
+    );
+  }, [budget]);
 
   const monthTxns  = getMonthTransactions(transactions);
   const monthSpend = monthTxns.filter(t => t.type === 'expense').reduce((s,t) => s + t.amount, 0);
