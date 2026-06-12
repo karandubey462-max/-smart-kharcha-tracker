@@ -1,4 +1,5 @@
-require('dotenv').config({ path: require('path').resolve(__dirname, '.env') });
+// dotenv: load .env in local dev; on Vercel env vars are injected automatically
+require('dotenv').config();
 const express     = require('express');
 const helmet      = require('helmet');
 const cors        = require('cors');
@@ -39,9 +40,15 @@ app.get('/',        (_, res) => res.json({ status: 'ok', app: 'Smart Kharcha API
 app.get('/health',  (_, res) => res.json({ status: 'ok', timestamp: new Date() }));
 
 // ── API Routes ──
+// Note: On Vercel, /api/* routes are forwarded to this function,
+// so we mount BOTH /api/... (for direct calls) and /... (for serverless)
 app.use('/api/auth',         require('./routes/auth'));
 app.use('/api/transactions', require('./routes/transactions'));
 app.use('/api/lend-borrow',  require('./routes/lendBorrow'));
+// Vercel strips the /api prefix before forwarding — mount without prefix too
+app.use('/auth',         require('./routes/auth'));
+app.use('/transactions', require('./routes/transactions'));
+app.use('/lend-borrow',  require('./routes/lendBorrow'));
 
 // ── Budget Routes (inline) ──
 app.get('/api/budget', auth, async (req, res) => {
