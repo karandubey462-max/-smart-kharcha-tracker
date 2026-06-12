@@ -56,42 +56,60 @@ app.use('/lend-borrow',  require('./routes/lendBorrow'));
 app.use('/webhook',      require('./routes/webhook'));
 
 // ── Budget Routes (inline) ──
-app.get('/api/budget', auth, async (req, res) => {
-  try {
-    const month = req.query.month || new Date().toISOString().slice(0, 7);
-    let budget = await Budget.findOne({ user: req.user._id, month });
-    if (!budget) budget = await Budget.create({ user: req.user._id, month, totalBudget: req.user.monthlyBudget || 25000, categories: [] });
-    res.json({ success: true, data: budget });
-  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
-});
-app.put('/api/budget', auth, async (req, res) => {
-  try {
-    const month = req.query.month || new Date().toISOString().slice(0, 7);
-    const budget = await Budget.findOneAndUpdate(
-      { user: req.user._id, month },
-      { ...req.body, user: req.user._id, month },
-      { new: true, upsert: true }
-    );
-    res.json({ success: true, data: budget });
-  } catch (err) { res.status(400).json({ success: false, message: err.message }); }
-});
+const budgetHandler = {
+  get: async (req, res) => {
+    try {
+      const month = req.query.month || new Date().toISOString().slice(0, 7);
+      let budget = await Budget.findOne({ user: req.user._id, month });
+      if (!budget) budget = await Budget.create({ user: req.user._id, month, totalBudget: req.user.monthlyBudget || 0, categories: [] });
+      res.json({ success: true, data: budget });
+    } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+  },
+  put: async (req, res) => {
+    try {
+      const month = req.query.month || new Date().toISOString().slice(0, 7);
+      const budget = await Budget.findOneAndUpdate(
+        { user: req.user._id, month },
+        { ...req.body, user: req.user._id, month },
+        { new: true, upsert: true }
+      );
+      res.json({ success: true, data: budget });
+    } catch (err) { res.status(400).json({ success: false, message: err.message }); }
+  },
+};
+app.get('/api/budget', auth, budgetHandler.get);
+app.put('/api/budget', auth, budgetHandler.put);
+// Vercel strips /api prefix:
+app.get('/budget', auth, budgetHandler.get);
+app.put('/budget', auth, budgetHandler.put);
 
 // ── Savings Goals Routes ──
-app.get('/api/goals',     auth, async (req, res) => { try { res.json({ success: true, data: await SavingsGoal.find({ user: req.user._id }) }); } catch (e) { res.status(500).json({ success: false, message: e.message }); } });
-app.post('/api/goals',    auth, async (req, res) => { try { res.status(201).json({ success: true, data: await SavingsGoal.create({ ...req.body, user: req.user._id }) }); } catch (e) { res.status(400).json({ success: false, message: e.message }); } });
-app.put('/api/goals/:id', auth, async (req, res) => { try { res.json({ success: true, data: await SavingsGoal.findOneAndUpdate({ _id: req.params.id, user: req.user._id }, req.body, { new: true }) }); } catch (e) { res.status(400).json({ success: false, message: e.message }); } });
-app.delete('/api/goals/:id', auth, async (req, res) => { try { await SavingsGoal.findOneAndDelete({ _id: req.params.id, user: req.user._id }); res.json({ success: true }); } catch (e) { res.status(500).json({ success: false, message: e.message }); } });
+const goalGet    = async (req, res) => { try { res.json({ success: true, data: await SavingsGoal.find({ user: req.user._id }) }); } catch (e) { res.status(500).json({ success: false, message: e.message }); } };
+const goalPost   = async (req, res) => { try { res.status(201).json({ success: true, data: await SavingsGoal.create({ ...req.body, user: req.user._id }) }); } catch (e) { res.status(400).json({ success: false, message: e.message }); } };
+const goalPut    = async (req, res) => { try { res.json({ success: true, data: await SavingsGoal.findOneAndUpdate({ _id: req.params.id, user: req.user._id }, req.body, { new: true }) }); } catch (e) { res.status(400).json({ success: false, message: e.message }); } };
+const goalDelete = async (req, res) => { try { await SavingsGoal.findOneAndDelete({ _id: req.params.id, user: req.user._id }); res.json({ success: true }); } catch (e) { res.status(500).json({ success: false, message: e.message }); } };
+app.get('/api/goals',        auth, goalGet);    app.get('/goals',        auth, goalGet);
+app.post('/api/goals',       auth, goalPost);   app.post('/goals',       auth, goalPost);
+app.put('/api/goals/:id',    auth, goalPut);    app.put('/goals/:id',    auth, goalPut);
+app.delete('/api/goals/:id', auth, goalDelete); app.delete('/goals/:id', auth, goalDelete);
 
 // ── Recurring Routes ──
-app.get('/api/recurring',     auth, async (req, res) => { try { res.json({ success: true, data: await Recurring.find({ user: req.user._id }) }); } catch (e) { res.status(500).json({ success: false, message: e.message }); } });
-app.post('/api/recurring',    auth, async (req, res) => { try { res.status(201).json({ success: true, data: await Recurring.create({ ...req.body, user: req.user._id }) }); } catch (e) { res.status(400).json({ success: false, message: e.message }); } });
-app.put('/api/recurring/:id', auth, async (req, res) => { try { res.json({ success: true, data: await Recurring.findOneAndUpdate({ _id: req.params.id, user: req.user._id }, req.body, { new: true }) }); } catch (e) { res.status(400).json({ success: false, message: e.message }); } });
-app.delete('/api/recurring/:id', auth, async (req, res) => { try { await Recurring.findOneAndDelete({ _id: req.params.id, user: req.user._id }); res.json({ success: true }); } catch (e) { res.status(500).json({ success: false, message: e.message }); } });
+const recGet    = async (req, res) => { try { res.json({ success: true, data: await Recurring.find({ user: req.user._id }) }); } catch (e) { res.status(500).json({ success: false, message: e.message }); } };
+const recPost   = async (req, res) => { try { res.status(201).json({ success: true, data: await Recurring.create({ ...req.body, user: req.user._id }) }); } catch (e) { res.status(400).json({ success: false, message: e.message }); } };
+const recPut    = async (req, res) => { try { res.json({ success: true, data: await Recurring.findOneAndUpdate({ _id: req.params.id, user: req.user._id }, req.body, { new: true }) }); } catch (e) { res.status(400).json({ success: false, message: e.message }); } };
+const recDelete = async (req, res) => { try { await Recurring.findOneAndDelete({ _id: req.params.id, user: req.user._id }); res.json({ success: true }); } catch (e) { res.status(500).json({ success: false, message: e.message }); } };
+app.get('/api/recurring',        auth, recGet);    app.get('/recurring',        auth, recGet);
+app.post('/api/recurring',       auth, recPost);   app.post('/recurring',       auth, recPost);
+app.put('/api/recurring/:id',    auth, recPut);    app.put('/recurring/:id',    auth, recPut);
+app.delete('/api/recurring/:id', auth, recDelete); app.delete('/recurring/:id', auth, recDelete);
 
 // ── Reminders Routes ──
-app.get('/api/reminders',     auth, async (req, res) => { try { res.json({ success: true, data: await Reminder.find({ user: req.user._id }).sort({ createdAt: -1 }) }); } catch (e) { res.status(500).json({ success: false, message: e.message }); } });
-app.put('/api/reminders/:id', auth, async (req, res) => { try { res.json({ success: true, data: await Reminder.findOneAndUpdate({ _id: req.params.id, user: req.user._id }, req.body, { new: true }) }); } catch (e) { res.status(400).json({ success: false, message: e.message }); } });
-app.delete('/api/reminders/:id', auth, async (req, res) => { try { await Reminder.findOneAndDelete({ _id: req.params.id, user: req.user._id }); res.json({ success: true }); } catch (e) { res.status(500).json({ success: false, message: e.message }); } });
+const remGet    = async (req, res) => { try { res.json({ success: true, data: await Reminder.find({ user: req.user._id }).sort({ createdAt: -1 }) }); } catch (e) { res.status(500).json({ success: false, message: e.message }); } };
+const remPut    = async (req, res) => { try { res.json({ success: true, data: await Reminder.findOneAndUpdate({ _id: req.params.id, user: req.user._id }, req.body, { new: true }) }); } catch (e) { res.status(400).json({ success: false, message: e.message }); } };
+const remDelete = async (req, res) => { try { await Reminder.findOneAndDelete({ _id: req.params.id, user: req.user._id }); res.json({ success: true }); } catch (e) { res.status(500).json({ success: false, message: e.message }); } };
+app.get('/api/reminders',        auth, remGet);    app.get('/reminders',        auth, remGet);
+app.put('/api/reminders/:id',    auth, remPut);    app.put('/reminders/:id',    auth, remPut);
+app.delete('/api/reminders/:id', auth, remDelete); app.delete('/reminders/:id', auth, remDelete);
 
 // ── 404 ──
 app.use((req, res) => res.status(404).json({ success: false, message: `Route ${req.method} ${req.path} not found` }));

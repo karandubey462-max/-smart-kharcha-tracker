@@ -63,7 +63,7 @@ const useStore = create(
         isPinVerified: false,
         transactions: [],
         lendBorrow: [],
-        budget: { totalBudget: 25000, month: new Date().toISOString().slice(0, 7), categories: [] },
+        budget: { totalBudget: 0, month: new Date().toISOString().slice(0, 7), categories: [] },
         savingsGoals: [],
         recurring: [],
         reminders: [],
@@ -88,7 +88,7 @@ const useStore = create(
           set({
             transactions: txnsRes.data.data || [],
             lendBorrow: lbRes.data.data || [],
-            budget: budgetRes.data.data || { totalBudget: 25000, month: new Date().toISOString().slice(0, 7), categories: [] },
+            budget: budgetRes.data.data || { totalBudget: 0, month: new Date().toISOString().slice(0, 7), categories: [] },
             savingsGoals: goalsRes.data.data || [],
             recurring: recRes.data.data || [],
             reminders: remindersRes.data.data || [],
@@ -244,7 +244,7 @@ const useStore = create(
       },
 
       // ─── Budget ───────────────────────────────────────────────
-      budget: { totalBudget: 25000, month: new Date().toISOString().slice(0, 7), categories: [] },
+      budget: { totalBudget: 0, month: new Date().toISOString().slice(0, 7), categories: [] },
       setBudget: async (budget) => {
         if (get().isDemo) {
           set({ budget });

@@ -83,30 +83,44 @@ export default function Home() {
               style={{ fontSize: 38, fontWeight: 800, color: 'white' }}
             />
           </div>
-          <div style={{ marginTop: 12, position: 'relative', zIndex: 1 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>Budget used</span>
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.9)', fontWeight: 700 }}>{budgetStatus.pct.toFixed(0)}%</span>
-            </div>
-            <div style={{ height: 6, background: 'rgba(255,255,255,0.1)', borderRadius: 999 }}>
-              <div style={{
-                height: '100%', borderRadius: 999,
-                width: `${Math.min(budgetStatus.pct, 100)}%`,
-                background: budgetStatus.pct >= 80 ? 'linear-gradient(90deg, #F87171, #FC8181)' : 'linear-gradient(90deg, #6C63FF, #A78BFA)',
-                transition: 'width 1s ease',
-              }} />
-            </div>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 14, position: 'relative', zIndex: 1 }}>
-            <div>
-              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>Remaining</p>
-              <p style={{ fontSize: 16, fontWeight: 700, color: budgetStatus.pct >= 80 ? '#FCA5A5' : '#A3E4B5' }}>{formatCurrency(remaining)}</p>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>Income</p>
-              <p style={{ fontSize: 16, fontWeight: 700, color: '#6EE7B7' }}>{formatCurrency(monthIncome)}</p>
-            </div>
-          </div>
+          {budget.totalBudget > 0 ? (
+            <>
+              <div style={{ marginTop: 12, position: 'relative', zIndex: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>Budget used</span>
+                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.9)', fontWeight: 700 }}>{budgetStatus.pct.toFixed(0)}%</span>
+                </div>
+                <div style={{ height: 6, background: 'rgba(255,255,255,0.1)', borderRadius: 999 }}>
+                  <div style={{
+                    height: '100%', borderRadius: 999,
+                    width: `${Math.min(budgetStatus.pct, 100)}%`,
+                    background: budgetStatus.pct >= 80 ? 'linear-gradient(90deg, #F87171, #FC8181)' : 'linear-gradient(90deg, #6C63FF, #A78BFA)',
+                    transition: 'width 1s ease',
+                  }} />
+                </div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 14, position: 'relative', zIndex: 1 }}>
+                <div>
+                  <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>Remaining</p>
+                  <p style={{ fontSize: 16, fontWeight: 700, color: budgetStatus.pct >= 80 ? '#FCA5A5' : '#A3E4B5' }}>{formatCurrency(remaining)}</p>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>Income</p>
+                  <p style={{ fontSize: 16, fontWeight: 700, color: '#6EE7B7' }}>{formatCurrency(monthIncome)}</p>
+                </div>
+              </div>
+            </>
+          ) : (
+            <button onClick={() => navigate('/budget')} style={{
+              marginTop: 16, width: '100%', background: 'rgba(255,255,255,0.12)',
+              border: '1px dashed rgba(255,255,255,0.3)', borderRadius: 12,
+              padding: '10px 16px', color: 'rgba(255,255,255,0.8)', fontSize: 13,
+              fontWeight: 600, cursor: 'pointer', position: 'relative', zIndex: 1,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            }}>
+              🎯 Tap to set your monthly budget
+            </button>
+          )}
         </div>
 
         {/* ── Quick Import Buttons ── */}
