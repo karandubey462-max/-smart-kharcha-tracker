@@ -22,6 +22,9 @@ app.use(cors({
     process.env.FRONTEND_URL || 'http://localhost:5174',
     'https://smart-kharcha.vercel.app',
     /\.vercel\.app$/,
+    'http://localhost',
+    'https://localhost',
+    'capacitor://localhost',
   ],
   credentials: true,
 }));
