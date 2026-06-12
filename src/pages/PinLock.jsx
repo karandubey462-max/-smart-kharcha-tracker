@@ -1,24 +1,35 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useStore from '../store/useStore';
+import api from '../utils/api';
 
 export default function PinLock() {
-  const { verifyPin } = useStore();
+  const { verifyPin, isDemo } = useStore();
   const navigate = useNavigate();
   const [pin, setPin] = useState('');
   const [error, setError] = useState(false);
-  const CORRECT_PIN = '1234';
 
-  const handleKey = (key) => {
+  const handleKey = async (key) => {
     if (key === 'del') { setPin(p => p.slice(0, -1)); setError(false); return; }
     if (pin.length >= 4) return;
     const next = pin + key;
     setPin(next);
     if (next.length === 4) {
-      setTimeout(() => {
-        if (next === CORRECT_PIN) { verifyPin(); navigate('/'); }
-        else { setError(true); setTimeout(() => { setPin(''); setError(false); }, 700); }
-      }, 150);
+      if (isDemo) {
+        setTimeout(() => {
+          if (next === '1234') { verifyPin(); navigate('/'); }
+          else { setError(true); setTimeout(() => { setPin(''); setError(false); }, 700); }
+        }, 150);
+      } else {
+        try {
+          await api.post('/auth/verify-pin', { pin: next });
+          verifyPin();
+          navigate('/');
+        } catch (err) {
+          setError(true);
+          setTimeout(() => { setPin(''); setError(false); }, 700);
+        }
+      }
     }
   };
 

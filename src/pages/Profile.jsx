@@ -1,15 +1,37 @@
 import { useNavigate } from 'react-router-dom';
 import useStore from '../store/useStore';
+import api from '../utils/api';
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { user, showToast } = useStore();
+  const { user, isDemo, showToast } = useStore();
 
   const stats = [
     { label: 'Member Since', value: 'June 2026' },
-    { label: 'Transactions', value: '30+' },
-    { label: 'Goals', value: '4' },
+    { label: 'Transactions', value: user?.isDemo ? '30+' : 'Cloud Sync' },
+    { label: 'Goals', value: user?.isDemo ? '4' : 'Active' },
   ];
+
+  const handleChangePin = async () => {
+    const newPin = prompt("Enter new 4-digit security PIN:");
+    if (newPin === null) return;
+    if (!/^\d{4}$/.test(newPin)) {
+      showToast('PIN must be exactly 4 digits.', 'error');
+      return;
+    }
+    if (isDemo) {
+      showToast('PIN set (demo mode) ✨');
+    } else {
+      try {
+        await api.post('/auth/set-pin', { pin: newPin });
+        showToast('PIN set successfully! 🔐');
+        // Update user state locally
+        useStore.setState((s) => ({ user: { ...s.user, pinEnabled: true } }));
+      } catch (err) {
+        showToast('Failed to set PIN', 'error');
+      }
+    }
+  };
 
   return (
     <div>
@@ -48,7 +70,7 @@ export default function Profile() {
           {[
             { label: 'Full Name', value: user?.name || 'Karan Sharma', icon: '👤' },
             { label: 'Email', value: user?.email || 'karan@example.com', icon: '📧' },
-            { label: 'Phone', value: user?.phone || '+91 9876543210', icon: '📱' },
+            { label: 'Phone', value: user?.phone || 'Not provided', icon: '📱' },
             { label: 'Currency', value: '₹ Indian Rupee (INR)', icon: '💱' },
             { label: 'Language', value: 'English', icon: '🌐' },
           ].map((row, i) => (
@@ -66,11 +88,11 @@ export default function Profile() {
         {/* Security */}
         <div className="card">
           {[
-            { icon: '🔐', label: 'Change PIN', sub: '4-digit security PIN' },
-            { icon: '🫆', label: 'Biometric', sub: 'Fingerprint / Face ID' },
-            { icon: '🔒', label: 'App Lock', sub: 'Lock on background' },
+            { icon: '🔐', label: 'Change PIN', sub: '4-digit security PIN', action: handleChangePin },
+            { icon: '🫆', label: 'Biometric', sub: 'Fingerprint / Face ID', action: () => showToast('Coming soon') },
+            { icon: '🔒', label: 'App Lock', sub: 'Lock on background', action: () => showToast('Coming soon') },
           ].map((item, i) => (
-            <div key={i} className="settings-row" onClick={() => showToast('Coming soon')}>
+            <div key={i} className="settings-row" onClick={item.action}>
               <div className="settings-icon" style={{ background: 'rgba(239,68,68,0.1)' }}>{item.icon}</div>
               <div className="settings-text">
                 <p className="settings-title">{item.label}</p>

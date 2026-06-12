@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import useStore from '../store/useStore';
 
@@ -12,8 +13,14 @@ const NAV_ITEMS = [
 export default function AppShell() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { reminders } = useStore();
+  const { reminders, isAuthenticated, isDemo, fetchUserData } = useStore();
   const unread = reminders.filter(r => !r.isRead).length;
+
+  useEffect(() => {
+    if (isAuthenticated && !isDemo) {
+      fetchUserData();
+    }
+  }, [isAuthenticated, isDemo, fetchUserData]);
 
   return (
     <div className="app-shell">

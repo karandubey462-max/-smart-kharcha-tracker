@@ -1,23 +1,47 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useStore from '../store/useStore';
+import api from '../utils/api';
 
 export default function Login() {
-  const { login, showToast } = useStore();
+  const { login, fetchUserData, showToast } = useStore();
   const navigate = useNavigate();
   const [tab, setTab] = useState('login');
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' });
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      login({ name: form.name || 'Karan Sharma', email: form.email || 'karan@example.com', phone: form.phone });
-      showToast('Welcome to Smart Kharcha Tracker! 🎉');
+    try {
+      if (tab === 'login') {
+        const res = await api.post('/auth/login', {
+          email: form.email,
+          password: form.password,
+        });
+        login(res.data.user, res.data.token);
+        showToast('Welcome back! 🎉');
+      } else {
+        const res = await api.post('/auth/register', {
+          name: form.name,
+          email: form.email,
+          password: form.password,
+          phone: form.phone,
+        });
+        login(res.data.user, res.data.token);
+        showToast('Account created successfully! 🚀');
+      }
+      
+      // Fetch user data from server
+      await fetchUserData();
       navigate('/');
+    } catch (err) {
+      console.error(err);
+      const errMsg = err.response?.data?.message || 'Something went wrong. Please try again.';
+      showToast(errMsg, 'error');
+    } finally {
       setLoading(false);
-    }, 900);
+    }
   };
 
   const handleDemo = () => {
