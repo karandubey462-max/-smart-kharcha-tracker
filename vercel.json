@@ -2,16 +2,19 @@
   "version": 2,
   "builds": [
     {
+      "src": "backend/server.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": { "distDir": "dist" }
     }
   ],
   "routes": [
-    { "src": "^/assets/(.*)", "dest": "/assets/$1" },
-    { "src": ".*", "dest": "/index.html" }
-  ],
-  "env": {
-    "VITE_API_URL": "@vite_api_url"
-  }
+    { "src": "/api/(.*)", "dest": "backend/server.js" },
+    { "src": "/health", "dest": "backend/server.js" },
+    { "src": "/assets/(.*)", "dest": "/assets/$1" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
 }

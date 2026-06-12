@@ -91,4 +91,8 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Smart Kharcha API running on port ${PORT} [${process.env.NODE_ENV || 'development'}]`));
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  app.listen(PORT, () => console.log(`🚀 Smart Kharcha API running on port ${PORT} [${process.env.NODE_ENV || 'development'}]`));
+}
+
+module.exports = app;
