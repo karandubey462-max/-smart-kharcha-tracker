@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useStore from '../store/useStore';
 import { autoCategory, getPaymentAppName } from '../utils/helpers';
-import { CATEGORIES } from '../data/demoData';
 
 const TYPES    = ['expense', 'income', 'lent', 'borrowed'];
 const PAY_APPS = ['phonepe', 'gpay', 'paytm', 'bank', 'cash', 'card', 'other'];
@@ -46,7 +45,7 @@ export default function AddTransaction() {
         <h2>Add Transaction</h2>
       </div>
 
-      <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div className="add-transaction-form">
         {/* Type Selector */}
         <div className="type-selector">
           {TYPES.map(t => (
@@ -103,7 +102,7 @@ export default function AddTransaction() {
         )}
 
         {/* Date + Time */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <div className="date-time-grid">
           <div className="form-group">
             <label className="form-label">Date</label>
             <input className="form-input" type="date" value={form.date} onChange={e => set('date', e.target.value)} />
