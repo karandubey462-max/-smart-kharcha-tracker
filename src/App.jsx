@@ -21,8 +21,7 @@ import Profile from './pages/Profile';
 import SMSImport from './pages/SMSImport';
 
 function ProtectedRoute({ children }) {
-  const { hasHydrated, isAuthenticated, isPinVerified, onboardingDone, user } = useStore();
-  if (!hasHydrated) return null;
+  const { isAuthenticated, isPinVerified, onboardingDone, user } = useStore();
   if (!onboardingDone) return <Navigate to="/onboarding" replace />;
   if (!isAuthenticated)  return <Navigate to="/login" replace />;
   // Only require PIN if the user has explicitly set one up

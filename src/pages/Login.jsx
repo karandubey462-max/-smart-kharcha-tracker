@@ -4,16 +4,16 @@ import useStore from '../store/useStore';
 import api from '../utils/api';
 
 export default function Login() {
-  const { hasHydrated, isAuthenticated, isPinVerified, user, login, fetchUserData, showToast } = useStore();
+  const { isAuthenticated, isPinVerified, user, login, fetchUserData, showToast } = useStore();
   const navigate = useNavigate();
   const [tab, setTab] = useState('login');
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!hasHydrated || !isAuthenticated) return;
+    if (!isAuthenticated) return;
     navigate(user?.pinEnabled && !isPinVerified ? '/pin' : '/', { replace: true });
-  }, [hasHydrated, isAuthenticated, isPinVerified, navigate, user?.pinEnabled]);
+  }, [isAuthenticated, isPinVerified, navigate, user?.pinEnabled]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -61,8 +61,6 @@ export default function Login() {
       setLoading(false);
     }, 700);
   };
-
-  if (!hasHydrated) return null;
 
   return (
     <div style={{
