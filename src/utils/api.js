@@ -1,9 +1,8 @@
 import axios from 'axios';
 
-// In production (Vercel), frontend & backend share the same domain,
-// so we use a relative /api path. Locally we hit port 5000.
+// Production clients, including the APK shell, should use the stable Render API.
 const API_URL = import.meta.env.VITE_API_URL ||
-  (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api');
+  (import.meta.env.PROD ? 'https://smart-kharcha-api-8dkk.onrender.com/api' : 'http://localhost:5000/api');
 
 const api = axios.create({
   baseURL: API_URL,

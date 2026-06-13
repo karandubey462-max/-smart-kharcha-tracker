@@ -18,7 +18,7 @@ services:
       - key: JWT_EXPIRES_IN
         value: 30d
       - key: FRONTEND_URL
-        value: https://smart-kharcha.vercel.app
+        value: https://smart-kharcha-tracker.vercel.app
       - key: RATE_LIMIT_WINDOW_MS
         value: "900000"
       - key: RATE_LIMIT_MAX
