@@ -4,7 +4,7 @@ import useStore from '../store/useStore';
 import { formatCurrency, formatDate, formatTime, getTxnColor, getTxnSign, groupByDate } from '../utils/helpers';
 import { getCategoryById } from '../data/demoData';
 
-const FILTER_TYPES = ['All', 'Expense', 'Income', 'Lent', 'Borrowed'];
+const FILTER_TYPES = ['All', 'Expense', 'Income', 'Lent', 'Borrowed', 'Refund', 'Repayment'];
 
 export default function Transactions() {
   const navigate = useNavigate();
@@ -57,7 +57,7 @@ export default function Transactions() {
         </div>
 
         {/* Filter chips */}
-        <div className="scroll-row">
+        <div className="scroll-row" style={{ paddingBottom: 4 }}>
           {FILTER_TYPES.map(f => (
             <button key={f} className={`chip ${filterType === f ? 'chip-active' : 'chip-default'}`}
               onClick={() => setFilterType(f)}>
