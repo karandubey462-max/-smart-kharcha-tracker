@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import useStore from '../store/useStore';
+import useScrollFix from '../hooks/useScrollFix';
 
 const NAV_ITEMS = [
   { path: '/',             icon: '🏠', label: 'Home'    },
@@ -15,6 +16,9 @@ export default function AppShell() {
   const location = useLocation();
   const { reminders, isAuthenticated, isDemo, fetchUserData } = useStore();
   const unread = reminders.filter(r => !r.isRead).length;
+
+  // Fix mobile scroll issues
+  useScrollFix();
 
   useEffect(() => {
     if (isAuthenticated && !isDemo) {
