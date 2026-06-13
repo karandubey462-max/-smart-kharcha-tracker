@@ -427,6 +427,7 @@ ul, ol { list-style: none; }
   z-index: var(--z-nav);
   padding: 0 4px;
   padding-bottom: env(safe-area-inset-bottom);
+  overflow: visible;
 }
 
 .nav-item {
@@ -438,6 +439,7 @@ ul, ol { list-style: none; }
   flex: 1;
   padding: 8px 4px;
   border-radius: var(--radius-sm);
+  overflow: visible;
   transition: all var(--transition-fast);
   cursor: pointer;
   border: none;

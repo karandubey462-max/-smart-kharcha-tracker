@@ -33,7 +33,7 @@ export default function AppShell() {
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="bottom-nav">
+      <nav className="bottom-nav" style={{ overflow: 'visible' }}>
         {NAV_ITEMS.map((item, i) => {
           if (item.isCenter) {
             return (
@@ -41,16 +41,16 @@ export default function AppShell() {
                 key="add"
                 className="nav-item"
                 onClick={() => navigate('/add-transaction')}
-                style={{ flex: 1 }}
+                style={{ flex: 1, overflow: 'visible' }}
               >
                 <div style={{
-                  width: 50, height: 50,
+                  width: 56, height: 56,
                   borderRadius: '50%',
                   background: 'linear-gradient(135deg, var(--accent-primary), #A78BFA)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 26, color: 'white', fontWeight: 300,
+                  fontSize: 28, color: 'white', fontWeight: 300,
                   boxShadow: '0 4px 20px rgba(108,99,255,0.5)',
-                  marginTop: -20,
+                  marginTop: -28,
                   flexShrink: 0,
                 }}>+</div>
               </button>
