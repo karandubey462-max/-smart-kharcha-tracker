@@ -1,24 +1,31 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useStore from '../store/useStore';
 import api from '../utils/api';
 
 export default function Login() {
-  const { login, fetchUserData, showToast } = useStore();
+  const { hasHydrated, isAuthenticated, isPinVerified, user, login, fetchUserData, showToast } = useStore();
   const navigate = useNavigate();
   const [tab, setTab] = useState('login');
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' });
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (!hasHydrated || !isAuthenticated) return;
+    navigate(user?.pinEnabled && !isPinVerified ? '/pin' : '/', { replace: true });
+  }, [hasHydrated, isAuthenticated, isPinVerified, navigate, user?.pinEnabled]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
+      let authToken;
       if (tab === 'login') {
         const res = await api.post('/auth/login', {
           email: form.email,
           password: form.password,
         });
+        authToken = res.data.token;
         login(res.data.user, res.data.token);
         showToast('Welcome back! 🎉');
       } else {
@@ -28,12 +35,13 @@ export default function Login() {
           password: form.password,
           phone: form.phone,
         });
+        authToken = res.data.token;
         login(res.data.user, res.data.token);
         showToast('Account created successfully! 🚀');
       }
       
       // Fetch user data from server
-      await fetchUserData();
+      await fetchUserData(authToken);
       navigate('/');
     } catch (err) {
       console.error(err);
@@ -54,6 +62,8 @@ export default function Login() {
     }, 700);
   };
 
+  if (!hasHydrated) return null;
+
   return (
     <div style={{
       minHeight: '100vh', background: 'var(--bg-primary)',
@@ -62,7 +72,7 @@ export default function Login() {
     }}>
       {/* Header */}
       <div style={{
-        padding: '56px 28px 32px',
+        padding: 'max(calc(env(safe-area-inset-top) + 16px), 40px) 28px 32px',
         background: 'linear-gradient(180deg, rgba(108,99,255,0.08) 0%, transparent 100%)',
         textAlign: 'center',
       }}>

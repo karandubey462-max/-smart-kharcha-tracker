@@ -21,15 +21,17 @@ import Profile from './pages/Profile';
 import SMSImport from './pages/SMSImport';
 
 function ProtectedRoute({ children }) {
-  const { isAuthenticated, isPinVerified, onboardingDone } = useStore();
+  const { hasHydrated, isAuthenticated, isPinVerified, onboardingDone, user } = useStore();
+  if (!hasHydrated) return null;
   if (!onboardingDone) return <Navigate to="/onboarding" replace />;
   if (!isAuthenticated)  return <Navigate to="/login" replace />;
-  if (!isPinVerified)    return <Navigate to="/pin" replace />;
+  // Only require PIN if the user has explicitly set one up
+  if (user?.pinEnabled && !isPinVerified) return <Navigate to="/pin" replace />;
   return children;
 }
 
 export default function App() {
-  const { isAuthenticated, onboardingDone, toasts } = useStore();
+  const { toasts } = useStore();
 
   return (
     <BrowserRouter>

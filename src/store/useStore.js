@@ -26,6 +26,8 @@ const useStore = create(
       isAuthenticated: false,
       isPinVerified: false,
       onboardingDone: false,
+      hasHydrated: false,
+      setHasHydrated: (value) => set({ hasHydrated: value }),
 
       login: (userData, token) => {
         if (token) {
@@ -73,17 +75,19 @@ const useStore = create(
       completeOnboarding: () => set({ onboardingDone: true }),
 
       // ─── Fetch All User Data (Cloud Only) ──────────────────────
-      fetchUserData: async () => {
-        if (get().isDemo || !get().token) return;
+      fetchUserData: async (authToken) => {
+        const token = authToken || get().token;
+        if (get().isDemo || !token) return;
         set({ isLoading: true });
         try {
+          const config = { headers: { Authorization: `Bearer ${token}` } };
           const [txnsRes, lbRes, budgetRes, goalsRes, recRes, remindersRes] = await Promise.all([
-            api.get('/transactions'),
-            api.get('/lend-borrow'),
-            api.get('/budget'),
-            api.get('/goals'),
-            api.get('/recurring'),
-            api.get('/reminders'),
+            api.get('/transactions', config),
+            api.get('/lend-borrow', config),
+            api.get('/budget', config),
+            api.get('/goals', config),
+            api.get('/recurring', config),
+            api.get('/reminders', config),
           ]);
           set({
             transactions: txnsRes.data.data || [],
@@ -407,6 +411,10 @@ const useStore = create(
     }),
     {
       name: 'kharcha-store',
+      onRehydrateStorage: (state) => (restoredState, error) => {
+        if (error) console.error('Failed to restore saved session', error);
+        (restoredState || state)?.setHasHydrated(true);
+      },
       partialize: (s) => ({
         theme: s.theme,
         user: s.user,
