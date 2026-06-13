@@ -35,6 +35,14 @@ export default function AddTransaction() {
     navigate(-1);
   };
 
+  const handleAttachReceipt = () => {
+    if ('mediaDevices' in navigator || document.createElement('input').capture !== undefined) {
+      showToast('Receipt upload feature coming soon! 📎📸');
+    } else {
+      showToast('Camera/file upload not supported on this device', 'error');
+    }
+  };
+
   const typeColors = { expense: 'var(--color-expense)', income: 'var(--color-income)', lent: 'var(--color-lent)', borrowed: 'var(--color-borrow)' };
   const allCats = categories.filter(c => form.type === 'income' ? c.type === 'income' : c.type === 'expense');
 
@@ -154,7 +162,10 @@ export default function AddTransaction() {
         </div>
 
         {/* Attach receipt */}
-        <button className="btn btn-ghost btn-full" style={{ border: '1.5px dashed var(--border-default)', borderRadius: 12 }}>
+        <button 
+          className="btn btn-ghost btn-full" 
+          style={{ border: '1.5px dashed var(--border-default)', borderRadius: 12 }}
+          onClick={handleAttachReceipt}>
           📎 Attach Receipt / Screenshot
         </button>
 

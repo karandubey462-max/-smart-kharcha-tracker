@@ -53,7 +53,7 @@ export default function Home() {
     <div style={{ paddingBottom: 90 }}>
       {/* ── Header ── */}
       <div style={{
-        padding: '52px 20px 20px',
+        padding: 'max(calc(env(safe-area-inset-top) + 12px), 24px) 20px 20px',
         background: 'linear-gradient(180deg, rgba(108,99,255,0.08) 0%, transparent 100%)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>

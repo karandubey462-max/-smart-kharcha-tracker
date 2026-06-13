@@ -26,6 +26,26 @@ export default function TransactionDetail() {
     }
   };
 
+  const handleShare = () => {
+    const shareText = `${txn.description}\n${getTxnSign(txn.type)}${formatCurrency(txn.amount)}\n${formatDate(txn.date)} • ${cat?.name || 'Transaction'}\n\nShared from Smart Kharcha Tracker`;
+    
+    if (navigator.share) {
+      navigator.share({
+        title: 'Transaction Details',
+        text: shareText,
+      }).catch(() => {
+        // User cancelled or error
+      });
+    } else {
+      // Fallback: copy to clipboard
+      navigator.clipboard.writeText(shareText).then(() => {
+        showToast('Transaction details copied to clipboard! 📋');
+      }).catch(() => {
+        showToast('Unable to share', 'error');
+      });
+    }
+  };
+
   const typeLabels = { expense: 'Expense', income: 'Income', lent: 'Lent', borrowed: 'Borrowed', refund: 'Refund', repayment: 'Repayment' };
 
   return (
@@ -82,7 +102,7 @@ export default function TransactionDetail() {
         {/* Actions */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
           <button className="btn btn-secondary" onClick={() => navigate(`/add-transaction?edit=${txn.id}`)}>✏️ Edit</button>
-          <button className="btn btn-ghost" style={{ border: '1px solid var(--border-default)' }}>📤 Share</button>
+          <button className="btn btn-ghost" style={{ border: '1px solid var(--border-default)' }} onClick={handleShare}>📤 Share</button>
         </div>
 
         {/* Audit note */}

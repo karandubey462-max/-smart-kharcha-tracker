@@ -5,9 +5,10 @@
   animation: fadeIn 0.25s ease both;
 }
 
-/* Safe area for iPhone notches */
+/* Safe area for iPhone notches & Android gesture bar */
 .bottom-nav {
-  padding-bottom: max(env(safe-area-inset-bottom), 8px);
+  padding-bottom: max(env(safe-area-inset-bottom), 8px) !important;
+  height: calc(var(--nav-height) + env(safe-area-inset-bottom)) !important;
 }
 
 /* Custom scrollbar for desktop preview */
@@ -110,6 +111,6 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 
 /* ── Keyboard open fix on mobile ── */
 @media (max-height: 500px) {
-  .bottom-nav { position: relative; }
+  .bottom-nav { position: relative; height: var(--nav-height) !important; }
   .page-content { padding-bottom: 0; }
 }

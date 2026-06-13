@@ -26,7 +26,7 @@ const useStore = create(
       isAuthenticated: false,
       isPinVerified: false,
       onboardingDone: false,
-      hasHydrated: true,
+      hasHydrated: false,
       setHasHydrated: (value) => set({ hasHydrated: value }),
 
       login: (userData, token) => {
@@ -421,6 +421,7 @@ const useStore = create(
         token: s.token,
         isDemo: s.isDemo,
         isAuthenticated: s.isAuthenticated,
+        isPinVerified: s.isPinVerified,
         onboardingDone: s.onboardingDone,
         transactions: s.transactions,
         lendBorrow: s.lendBorrow,

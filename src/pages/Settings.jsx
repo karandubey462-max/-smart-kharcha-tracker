@@ -10,8 +10,8 @@ export default function Settings() {
       title: 'Account',
       items: [
         { icon: '👤', label: 'Profile & Security', sub: user?.name || 'Karan Sharma', action: () => navigate('/profile'), bg: '#6C63FF22', color: '#6C63FF' },
-        { icon: '🏦', label: 'Accounts & Wallets', sub: 'Manage bank, UPI, cash accounts', action: () => showToast('Coming soon'), bg: '#3B82F622', color: '#3B82F6' },
-        { icon: '📂', label: 'Categories', sub: 'Add or edit expense categories', action: () => showToast('Coming soon'), bg: '#A855F722', color: '#A855F7' },
+        { icon: '🏦', label: 'Accounts & Wallets', sub: 'Manage bank, UPI, cash accounts', action: () => showToast('Accounts & Wallets feature coming in next update! 🏦', 'warning'), bg: '#3B82F622', color: '#3B82F6' },
+        { icon: '📂', label: 'Categories', sub: 'Add or edit expense categories', action: () => showToast('Custom categories coming soon! 📂', 'warning'), bg: '#A855F722', color: '#A855F7' },
       ]
     },
     {
@@ -19,30 +19,31 @@ export default function Settings() {
       items: [
         { icon: '📱', label: 'SMS Auto-Import', sub: 'Read PhonePe SMS automatically', action: () => navigate('/sms-import'), bg: '#6C63FF22', color: '#6C63FF' },
         { icon: '📥', label: 'Import Statement', sub: 'PhonePe CSV / bank statement', action: () => navigate('/import'), bg: '#10B98122', color: '#10B981' },
-        { icon: '📤', label: 'Export Report', sub: 'Download PDF or CSV', action: () => showToast('Generating report...'), bg: '#F59E0B22', color: '#F59E0B' },
-        { icon: '🔄', label: 'Backup & Restore', sub: 'Cloud backup coming soon', action: () => showToast('Coming soon'), bg: '#14B8A622', color: '#14B8A6' },
+        { icon: '📤', label: 'Export Report', sub: 'Download PDF or CSV', action: () => navigate('/reports'), bg: '#F59E0B22', color: '#F59E0B' },
+        { icon: '🔄', label: 'Backup & Restore', sub: 'Cloud backup coming soon', action: () => showToast('Cloud backup & restore coming in next update! ☁️', 'warning'), bg: '#14B8A622', color: '#14B8A6' },
       ]
     },
     {
       title: 'Preferences',
       items: [
         { icon: theme === 'dark' ? '☀️' : '🌙', label: theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode', sub: `Currently: ${theme} mode`, action: toggleTheme, bg: '#FBBF2422', color: '#FBBF24' },
-        { icon: '🌐', label: 'Language', sub: 'English / हिंदी', action: () => showToast('Hindi support coming soon'), bg: '#EC489922', color: '#EC4899' },
+        { icon: '🌐', label: 'Language', sub: 'English / हिंदी', action: () => showToast('हिंदी language support coming soon! 🇮🇳', 'warning'), bg: '#EC489922', color: '#EC4899' },
         { icon: '🔔', label: 'Notifications', sub: 'Manage reminders & alerts', action: () => navigate('/reminders'), bg: '#6C63FF22', color: '#6C63FF' },
       ]
     },
     {
       title: 'Security',
       items: [
-        { icon: '🔐', label: 'Change PIN', sub: 'Update your 4-digit PIN', action: () => showToast('Coming soon'), bg: '#EF444422', color: '#EF4444' },
-        { icon: '🫆', label: 'Biometric Lock', sub: 'Face ID / Fingerprint', action: () => showToast('Coming soon'), bg: '#10B98122', color: '#10B981' },
+        { icon: '🔐', label: 'Change PIN', sub: 'Update your 4-digit PIN', action: () => navigate('/profile'), bg: '#EF444422', color: '#EF4444' },
+        { icon: '🫆', label: 'Biometric Lock', sub: 'Face ID / Fingerprint', action: () => showToast('Biometric authentication coming soon! 🔒', 'warning'), bg: '#10B98122', color: '#10B981' },
       ]
     },
     {
       title: 'More',
       items: [
-        { icon: '❓', label: 'Help & Support', sub: 'FAQs and contact', action: () => showToast('Coming soon'), bg: '#94A3B822', color: '#94A3B8' },
-        { icon: 'ℹ️', label: 'About Smart Kharcha', sub: 'Version 1.0.0 — Built for India', action: () => showToast('Smart Kharcha Tracker v1.0'), bg: '#6C63FF22', color: '#6C63FF' },
+        { icon: '⭐', label: 'Reviews & Feedback', sub: 'Check user reviews', action: () => navigate('/reviews'), bg: '#FBBF2422', color: '#FBBF24' },
+        { icon: '❓', label: 'Help & Support', sub: 'FAQs and contact', action: () => showToast('Help & Support section coming soon! 💬', 'warning'), bg: '#94A3B822', color: '#94A3B8' },
+        { icon: 'ℹ️', label: 'About Smart Kharcha', sub: 'Version 1.0.0 — Built for India', action: () => showToast('Smart Kharcha Tracker v1.0.0 🇮🇳\nMade with ❤️ in India'), bg: '#6C63FF22', color: '#6C63FF' },
         { icon: '🚪', label: 'Sign Out', sub: 'Log out of your account', action: () => { logout(); navigate('/login'); }, bg: '#EF444422', color: '#EF4444', danger: true },
       ]
     },

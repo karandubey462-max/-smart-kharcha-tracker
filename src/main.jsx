@@ -6,7 +6,13 @@ import './index.css';
 import './App.css';
 
 // Apply persisted theme before first render
-const stored = JSON.parse(localStorage.getItem('kharcha-store') || '{}');
+let stored = {};
+try {
+  stored = JSON.parse(localStorage.getItem('kharcha-store') || '{}');
+} catch (err) {
+  console.error('Failed to read saved app state', err);
+  localStorage.removeItem('kharcha-store');
+}
 const theme = stored?.state?.theme || 'dark';
 document.documentElement.setAttribute('data-theme', theme);
 

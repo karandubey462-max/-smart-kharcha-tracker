@@ -51,9 +51,18 @@ const reminderSchema = new mongoose.Schema({
   isRead:  { type: Boolean, default: false },
 }, { timestamps: true });
 
+// Review
+const reviewSchema = new mongoose.Schema({
+  user:        { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  displayName: { type: String, required: true },
+  rating:      { type: Number, required: true, min: 1, max: 5 },
+  comment:     { type: String, required: true, maxlength: 500 },
+}, { timestamps: true });
+
 module.exports = {
   Budget:     mongoose.model('Budget',     budgetSchema),
   SavingsGoal:mongoose.model('SavingsGoal',savingsGoalSchema),
   Recurring:  mongoose.model('Recurring',  recurringSchema),
   Reminder:   mongoose.model('Reminder',   reminderSchema),
+  Review:     mongoose.model('Review',     reviewSchema),
 };

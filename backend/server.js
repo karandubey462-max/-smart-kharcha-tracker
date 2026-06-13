@@ -20,7 +20,7 @@ app.use(helmet());
 app.use(cors({
   origin: [
     process.env.FRONTEND_URL || 'http://localhost:5174',
-    'https://smart-kharcha.vercel.app',
+    'https://smart-kharcha-tracker.vercel.app',
     /\.vercel\.app$/,
     'http://localhost',
     'https://localhost',
@@ -49,11 +49,13 @@ app.use('/api/auth',         require('./routes/auth'));
 app.use('/api/transactions', require('./routes/transactions'));
 app.use('/api/lend-borrow',  require('./routes/lendBorrow'));
 app.use('/api/webhook',      require('./routes/webhook'));
+app.use('/api/reviews',      require('./routes/reviews'));
 // Vercel strips the /api prefix before forwarding — mount without prefix too
 app.use('/auth',         require('./routes/auth'));
 app.use('/transactions', require('./routes/transactions'));
 app.use('/lend-borrow',  require('./routes/lendBorrow'));
 app.use('/webhook',      require('./routes/webhook'));
+app.use('/reviews',      require('./routes/reviews'));
 
 // ── Budget Routes (inline) ──
 const budgetHandler = {

@@ -42,9 +42,15 @@ export default function Onboarding() {
   const { icon, gradient, title, subtitle } = slides[slide];
 
   return (
-    <div className="onboarding-page" style={{ background: 'var(--bg-primary)' }}>
+    <div className="onboarding-page" style={{ 
+      background: 'var(--bg-primary)',
+      minHeight: '100vh',
+      minHeight: '-webkit-fill-available',
+      display: 'flex',
+      flexDirection: 'column',
+    }}>
       {/* Skip */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '20px 24px 0' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: 'max(calc(env(safe-area-inset-top) + 12px), 20px) 24px 0' }}>
         <button
           className="btn btn-ghost btn-sm"
           onClick={() => { completeOnboarding(); navigate('/login'); }}
