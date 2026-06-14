@@ -1,26 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import SplashScreen from './components/SplashScreen.jsx';
+import { storage } from './utils/storage';
 import './index.css';
 import './App.css';
 
-// Apply persisted theme before first render
-let stored = {};
-try {
-  const storedData = localStorage.getItem('kharcha-store');
-  if (storedData) {
-    stored = JSON.parse(storedData);
-  }
-} catch (err) {
-  console.error('Failed to read saved app state - using defaults', err);
-  // Don't remove the store - let Zustand's persist middleware handle recovery
-}
-const theme = stored?.state?.theme || 'dark';
-document.documentElement.setAttribute('data-theme', theme);
-
 function Root() {
   const [splashDone, setSplashDone] = useState(false);
+  const [themeReady, setThemeReady] = useState(false);
+
+  useEffect(() => {
+    // Apply persisted theme before first render
+    const initTheme = async () => {
+      try {
+        const storedData = await storage.getItem('kharcha-store');
+        if (storedData) {
+          const parsed = JSON.parse(storedData);
+          const theme = parsed?.state?.theme || 'dark';
+          document.documentElement.setAttribute('data-theme', theme);
+        } else {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      } catch (err) {
+        console.error('Failed to read saved theme - using dark mode', err);
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } finally {
+        setThemeReady(true);
+      }
+    };
+    initTheme();
+  }, []);
+
+  if (!themeReady) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        height: '100vh',
+        background: '#0A0E1A' 
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: 48, marginBottom: 16 }}>💰</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       {!splashDone && <SplashScreen onDone={() => setSplashDone(true)} />}

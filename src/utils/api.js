@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { storage } from './storage';
 
 // Production clients, including the APK shell, should use the stable Render API.
 const API_URL = import.meta.env.VITE_API_URL ||
@@ -13,9 +14,9 @@ const api = axios.create({
 
 // Request interceptor to attach JWT token
 api.interceptors.request.use(
-  (config) => {
+  async (config) => {
     try {
-      const rawStore = localStorage.getItem('kharcha-store');
+      const rawStore = await storage.getItem('kharcha-store');
       if (rawStore) {
         const parsed = JSON.parse(rawStore);
         const token = parsed?.state?.token;
@@ -24,7 +25,7 @@ api.interceptors.request.use(
         }
       }
     } catch (err) {
-      console.error('Error reading token from localStorage', err);
+      console.error('Error reading token from storage', err);
     }
     return config;
   },
@@ -34,11 +35,11 @@ api.interceptors.request.use(
 // Response interceptor to handle token expiration/401 errors
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response && error.response.status === 401) {
-      // Clear token and auth info from localStorage
+      // Clear token and auth info from storage
       try {
-        const rawStore = localStorage.getItem('kharcha-store');
+        const rawStore = await storage.getItem('kharcha-store');
         if (rawStore) {
           const parsed = JSON.parse(rawStore);
           if (parsed?.state) {
@@ -46,7 +47,7 @@ api.interceptors.response.use(
             parsed.state.user = null;
             parsed.state.isAuthenticated = false;
             parsed.state.isPinVerified = false;
-            localStorage.setItem('kharcha-store', JSON.stringify(parsed));
+            await storage.setItem('kharcha-store', JSON.stringify(parsed));
           }
         }
       } catch (err) {

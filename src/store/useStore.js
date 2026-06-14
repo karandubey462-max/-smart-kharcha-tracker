@@ -1,6 +1,7 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import api from '../utils/api';
+import { createCapacitorStorage } from '../utils/storage';
 import {
   TRANSACTIONS, LEND_BORROW, BUDGETS, SAVINGS_GOALS, RECURRING,
   REMINDERS, ACCOUNTS, CATEGORIES, DEMO_USER,
@@ -411,6 +412,7 @@ const useStore = create(
     }),
     {
       name: 'kharcha-store',
+      storage: createJSONStorage(() => createCapacitorStorage()),
       onRehydrateStorage: (state) => {
         return (restoredState, error) => {
           if (error) {
