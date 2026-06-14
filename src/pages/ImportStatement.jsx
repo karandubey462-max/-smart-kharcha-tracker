@@ -30,9 +30,11 @@ export default function ImportStatement() {
     const reader = new FileReader();
     reader.onload = (ev) => {
       try {
-        console.log('📄 File loaded, parsing...');
+        console.log('📄 File loaded, size:', ev.target.result.length);
+        console.log('📄 First 500 chars:', ev.target.result.substring(0, 500));
         const txns = parseCSVTransactions(ev.target.result);
         console.log('✅ Parsed result:', txns);
+        console.log('✅ Transaction count:', txns.length);
         
         if (txns.length === 0) {
           showToast('No transactions found. Check CSV format.', 'warning');
@@ -45,6 +47,7 @@ export default function ImportStatement() {
         }
       } catch (err) {
         console.error('❌ Parse error:', err);
+        console.error('❌ Error stack:', err.stack);
         showToast('Could not parse file. Use PhonePe CSV format.', 'error');
         setStep(2);
       }
