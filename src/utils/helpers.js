@@ -261,7 +261,6 @@ export const parsePhonePeStatement = (text) => {
   const lines = text.split('\n').map(l => l.trim().replace(/^"|"$/g, ''));
   const txns = [];
   
-  let currentTxn = {};
   let lineIndex = 0;
   
   while (lineIndex < lines.length) {
@@ -285,6 +284,7 @@ export const parsePhonePeStatement = (text) => {
     
     // Check if this line starts a transaction (contains date pattern)
     // Format: "Jun 13, 2026    Paid to Docgenie    DEBIT    ₹529.5"
+    // OR: "Jun 13, 2026 Paid to Docgenie DEBIT" (with amount on next line)
     const dateMatch = line.match(/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{1,2}),?\s+(\d{4})/);
     
     if (dateMatch) {
@@ -300,50 +300,74 @@ export const parsePhonePeStatement = (text) => {
       // Extract description, type, and amount from the same line
       const restOfLine = line.substring(dateMatch[0].length).trim();
       
-      // Split by multiple spaces to get fields
+      // Split by multiple spaces OR single space (more flexible)
       const parts = restOfLine.split(/\s{2,}/).filter(p => p.trim());
+      
+      // If not enough parts with double-space splitting, try single space
+      let finalParts = parts;
+      if (parts.length < 2) {
+        finalParts = restOfLine.split(/\s+/).filter(p => p.trim());
+      }
       
       let description = '';
       let type = 'expense';
       let amount = 0;
       
-      if (parts.length >= 2) {
-        // Last part is amount
-        const amountStr = parts[parts.length - 1];
+      // Check if amount is on the same line
+      const hasAmountOnLine = restOfLine.includes('₹') || /\d+[,.]?\d*$/.test(restOfLine);
+      
+      if (hasAmountOnLine && finalParts.length >= 2) {
+        // Amount on same line
+        const amountStr = finalParts[finalParts.length - 1];
         amount = parseFloat(amountStr.replace(/[₹,\s]/g, '')) || 0;
         
-        // Second to last is type (DEBIT/CREDIT)
-        const typeStr = parts[parts.length - 2];
+        const typeStr = finalParts[finalParts.length - 2];
         if (typeStr && typeStr.toUpperCase().includes('CREDIT')) {
           type = 'income';
         }
         
-        // Everything else is description
-        description = parts.slice(0, parts.length - 2).join(' ');
+        description = finalParts.slice(0, finalParts.length - 2).join(' ');
+      } else {
+        // Amount might be on next line - check for DEBIT/CREDIT in current line
+        const typeMatch = restOfLine.match(/(DEBIT|CREDIT)/i);
+        if (typeMatch) {
+          if (typeMatch[1].toUpperCase() === 'CREDIT') {
+            type = 'income';
+          }
+          // Description is everything before DEBIT/CREDIT
+          description = restOfLine.substring(0, restOfLine.indexOf(typeMatch[0])).trim();
+          
+          // Look for amount on next line
+          if (lineIndex + 1 < lines.length) {
+            const nextLine = lines[lineIndex + 1].trim();
+            // Check if next line is an amount (starts with ₹ or is just a number)
+            if (nextLine.startsWith('₹') || /^[\d,]+\.?\d*$/.test(nextLine)) {
+              amount = parseFloat(nextLine.replace(/[₹,\s]/g, '')) || 0;
+              console.log(`📝 Found amount on next line: ${nextLine} → ${amount}`);
+            }
+          }
+        } else {
+          // Fallback: treat everything as description
+          description = restOfLine;
+        }
       }
       
       // Look ahead for time and transaction ID
       let time = '00:00';
       let upiRef = '';
       
-      if (lineIndex + 1 < lines.length) {
-        const nextLine = lines[lineIndex + 1];
-        const timeMatch = nextLine.match(/(\d{1,2}:\d{2}\s*(?:AM|PM))/i);
-        if (timeMatch) {
-          time = timeMatch[1];
+      for (let lookAhead = 1; lookAhead <= 3; lookAhead++) {
+        if (lineIndex + lookAhead < lines.length) {
+          const lookLine = lines[lineIndex + lookAhead];
+          const timeMatch = lookLine.match(/(\d{1,2}:\d{2}\s*(?:AM|PM))/i);
+          if (timeMatch && !time.includes(':')) {
+            time = timeMatch[1];
+          }
+          const txnIdMatch = lookLine.match(/Transaction ID\s+([A-Z0-9]+)/);
+          if (txnIdMatch && !upiRef) {
+            upiRef = txnIdMatch[1];
+          }
         }
-        const txnIdMatch = nextLine.match(/Transaction ID\s+([A-Z0-9]+)/);
-        if (txnIdMatch) {
-          upiRef = txnIdMatch[1];
-        }
-      }
-      
-      // Check if description continues on next line (for multi-line descriptions)
-      if (lineIndex + 2 < lines.length && !lines[lineIndex + 2].includes('Transaction ID') && 
-          !lines[lineIndex + 2].includes('UTR No') && !lines[lineIndex + 2].includes('Paid by') &&
-          !lines[lineIndex + 2].includes('Credited to') && lines[lineIndex + 2].length > 5 &&
-          !lines[lineIndex + 2].match(/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/)) {
-        description += ' ' + lines[lineIndex + 2];
       }
       
       if (amount > 0 && description) {
@@ -364,6 +388,8 @@ export const parsePhonePeStatement = (text) => {
         };
         console.log('✅ Parsed PhonePe transaction:', txn);
         txns.push(txn);
+      } else {
+        console.warn(`⚠️ Skipped transaction at line ${lineIndex}: amount=${amount}, description="${description}"`);
       }
     }
     
