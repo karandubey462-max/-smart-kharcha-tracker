@@ -142,6 +142,12 @@ export const parseCSVTransactions = (csvText) => {
     return [];
   }
   
+  // Check if this is a PhonePe formatted statement (multi-line format)
+  if (csvText.includes('Transaction Statement for') || csvText.includes('Transaction Details')) {
+    console.log('📱 Detected PhonePe formatted statement - using specialized parser');
+    return parsePhonePeStatement(csvText);
+  }
+  
   // Parse headers - handle quoted fields
   const parseCSVLine = (line) => {
     const result = [];
@@ -246,5 +252,124 @@ export const parseCSVTransactions = (csvText) => {
   }
   
   console.log(`✅ Successfully parsed ${txns.length} transactions`);
+  return txns;
+};
+
+// Specialized parser for PhonePe formatted statements (multi-line format)
+export const parsePhonePeStatement = (text) => {
+  console.log('📱 Parsing PhonePe formatted statement...');
+  const lines = text.split('\n').map(l => l.trim().replace(/^"|"$/g, ''));
+  const txns = [];
+  
+  let currentTxn = {};
+  let lineIndex = 0;
+  
+  while (lineIndex < lines.length) {
+    const line = lines[lineIndex];
+    
+    // Skip header lines, page numbers, disclaimers
+    if (!line || 
+        line.includes('Transaction Statement for') ||
+        line.includes('This is a system generated') ||
+        line.includes('This is an automatically generated') ||
+        line.includes('Disclaimer') ||
+        line.includes('Page ') ||
+        line.includes('Date            Transaction Details') ||
+        line.startsWith('of any errors') ||
+        line.startsWith('the recipient') ||
+        line.startsWith('terms-conditions') ||
+        line.startsWith('etc. through SMS')) {
+      lineIndex++;
+      continue;
+    }
+    
+    // Check if this line starts a transaction (contains date pattern)
+    // Format: "Jun 13, 2026    Paid to Docgenie    DEBIT    ₹529.5"
+    const dateMatch = line.match(/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{1,2}),?\s+(\d{4})/);
+    
+    if (dateMatch) {
+      // Parse the main transaction line
+      const [month, day, year] = [dateMatch[1], dateMatch[2], dateMatch[3]];
+      const monthNum = {
+        'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04',
+        'May': '05', 'Jun': '06', 'Jul': '07', 'Aug': '08',
+        'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'
+      }[month];
+      const date = `${year}-${monthNum}-${day.padStart(2, '0')}`;
+      
+      // Extract description, type, and amount from the same line
+      const restOfLine = line.substring(dateMatch[0].length).trim();
+      
+      // Split by multiple spaces to get fields
+      const parts = restOfLine.split(/\s{2,}/).filter(p => p.trim());
+      
+      let description = '';
+      let type = 'expense';
+      let amount = 0;
+      
+      if (parts.length >= 2) {
+        // Last part is amount
+        const amountStr = parts[parts.length - 1];
+        amount = parseFloat(amountStr.replace(/[₹,\s]/g, '')) || 0;
+        
+        // Second to last is type (DEBIT/CREDIT)
+        const typeStr = parts[parts.length - 2];
+        if (typeStr && typeStr.toUpperCase().includes('CREDIT')) {
+          type = 'income';
+        }
+        
+        // Everything else is description
+        description = parts.slice(0, parts.length - 2).join(' ');
+      }
+      
+      // Look ahead for time and transaction ID
+      let time = '00:00';
+      let upiRef = '';
+      
+      if (lineIndex + 1 < lines.length) {
+        const nextLine = lines[lineIndex + 1];
+        const timeMatch = nextLine.match(/(\d{1,2}:\d{2}\s*(?:AM|PM))/i);
+        if (timeMatch) {
+          time = timeMatch[1];
+        }
+        const txnIdMatch = nextLine.match(/Transaction ID\s+([A-Z0-9]+)/);
+        if (txnIdMatch) {
+          upiRef = txnIdMatch[1];
+        }
+      }
+      
+      // Check if description continues on next line (for multi-line descriptions)
+      if (lineIndex + 2 < lines.length && !lines[lineIndex + 2].includes('Transaction ID') && 
+          !lines[lineIndex + 2].includes('UTR No') && !lines[lineIndex + 2].includes('Paid by') &&
+          !lines[lineIndex + 2].includes('Credited to') && lines[lineIndex + 2].length > 5 &&
+          !lines[lineIndex + 2].match(/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/)) {
+        description += ' ' + lines[lineIndex + 2];
+      }
+      
+      if (amount > 0 && description) {
+        const txn = {
+          id: `import_${Date.now()}_${txns.length}_${Math.random().toString(36).substr(2, 9)}`,
+          type,
+          amount,
+          description: description.trim(),
+          date,
+          time,
+          upiRef,
+          category: autoCategory(description),
+          paymentApp: 'phonepe',
+          accountId: 'a1',
+          source: 'auto',
+          status: 'completed',
+          tags: 'personal',
+        };
+        console.log('✅ Parsed PhonePe transaction:', txn);
+        txns.push(txn);
+      }
+    }
+    
+    lineIndex++;
+  }
+  
+  console.log(`✅ Successfully parsed ${txns.length} PhonePe transactions`);
   return txns;
 };
