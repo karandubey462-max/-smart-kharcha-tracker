@@ -30,13 +30,29 @@ export default function ImportStatement() {
     const reader = new FileReader();
     reader.onload = (ev) => {
       try {
+        console.log('📄 File loaded, parsing...');
         const txns = parseCSVTransactions(ev.target.result);
-        setParsed(txns);
-        setSelected(new Set(txns.map(t => t.id)));
-        setStep(3);
-      } catch {
+        console.log('✅ Parsed result:', txns);
+        
+        if (txns.length === 0) {
+          showToast('No transactions found. Check CSV format.', 'warning');
+          setStep(2);
+        } else {
+          setParsed(txns);
+          setSelected(new Set(txns.map(t => t.id)));
+          setStep(3);
+          showToast(`Found ${txns.length} transactions ✅`);
+        }
+      } catch (err) {
+        console.error('❌ Parse error:', err);
         showToast('Could not parse file. Use PhonePe CSV format.', 'error');
+        setStep(2);
       }
+      setLoading(false);
+    };
+    reader.onerror = () => {
+      console.error('❌ File read error');
+      showToast('Could not read file', 'error');
       setLoading(false);
     };
     reader.readAsText(f);

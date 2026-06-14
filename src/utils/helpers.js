@@ -133,27 +133,98 @@ export const autoCategory = (description = '') => {
 };
 
 export const parseCSVTransactions = (csvText) => {
-  // Parse PhonePe-style CSV exports
-  const lines = csvText.trim().split('\n');
-  const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/['"]/g, ''));
+  // Parse PhonePe-style CSV exports with better error handling
+  console.log('🔍 Parsing CSV, length:', csvText.length);
+  
+  const lines = csvText.trim().split('\n').filter(line => line.trim());
+  if (lines.length < 2) {
+    console.error('❌ CSV has less than 2 lines');
+    return [];
+  }
+  
+  // Parse headers - handle quoted fields
+  const parseCSVLine = (line) => {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        result.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    result.push(current.trim());
+    return result.map(v => v.replace(/^["']|["']$/g, ''));
+  };
+  
+  const headers = parseCSVLine(lines[0]).map(h => h.trim().toLowerCase());
+  console.log('📋 Headers found:', headers);
+  
   const txns = [];
 
   for (let i = 1; i < lines.length; i++) {
-    const values = lines[i].split(',').map(v => v.trim().replace(/['"]/g, ''));
-    if (values.length < 3) continue;
+    const values = parseCSVLine(lines[i]);
+    if (values.length < 3) {
+      console.warn(`⚠️ Line ${i} has less than 3 values, skipping`);
+      continue;
+    }
+    
     const row = {};
     headers.forEach((h, idx) => { row[h] = values[idx] || ''; });
+    
+    console.log(`📝 Row ${i}:`, row);
 
-    const description = row['description'] || row['narration'] || row['remarks'] || row['particulars'] || '';
-    const amount = parseFloat((row['amount'] || row['debit'] || row['credit'] || '0').replace(/[₹,\s]/g, '')) || 0;
-    const dateRaw = row['date'] || row['transaction date'] || row['value date'] || '';
-    const type = (row['type'] || '').toLowerCase().includes('credit') ? 'income' : 'expense';
-    const upiRef = row['upi ref'] || row['reference no'] || row['transaction id'] || '';
-    const date = dateRaw ? new Date(dateRaw).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+    // Flexible field matching
+    const description = row['description'] || row['narration'] || row['remarks'] || 
+                       row['particulars'] || row['transaction details'] || row['details'] || '';
+    
+    // Try to parse amount - handle different formats
+    let amountStr = row['amount'] || row['debit'] || row['credit'] || 
+                   row['transaction amount'] || row['amt'] || '0';
+    const amount = parseFloat(amountStr.replace(/[₹,\s]/g, '')) || 0;
+    
+    // Date parsing - try multiple formats
+    const dateRaw = row['date'] || row['transaction date'] || row['value date'] || 
+                   row['txn date'] || row['transaction time'] || '';
+    
+    // Parse date more flexibly
+    let date = new Date().toISOString().split('T')[0];
+    if (dateRaw) {
+      try {
+        // Handle formats like "2026-06-10", "10/06/2026", "10-Jun-2026"
+        const parsed = new Date(dateRaw);
+        if (!isNaN(parsed.getTime())) {
+          date = parsed.toISOString().split('T')[0];
+        }
+      } catch (e) {
+        console.warn('⚠️ Could not parse date:', dateRaw);
+      }
+    }
+    
+    // Determine transaction type
+    let type = 'expense';
+    const typeField = (row['type'] || row['transaction type'] || '').toLowerCase();
+    const debit = row['debit'] || '';
+    const credit = row['credit'] || '';
+    
+    if (typeField.includes('credit') || (credit && !debit)) {
+      type = 'income';
+    } else if (typeField.includes('debit') || (debit && !credit)) {
+      type = 'expense';
+    }
+    
+    const upiRef = row['upi ref'] || row['reference no'] || row['transaction id'] || 
+                  row['upi reference no'] || row['ref no'] || '';
 
     if (amount > 0 && description) {
-      txns.push({
-        id: `import_${Date.now()}_${i}`,
+      const txn = {
+        id: `import_${Date.now()}_${i}_${Math.random().toString(36).substr(2, 9)}`,
         type,
         amount,
         description,
@@ -166,8 +237,14 @@ export const parseCSVTransactions = (csvText) => {
         source: 'auto',
         status: 'completed',
         tags: 'personal',
-      });
+      };
+      console.log('✅ Parsed transaction:', txn);
+      txns.push(txn);
+    } else {
+      console.warn(`⚠️ Skipping row ${i}: amount=${amount}, description="${description}"`);
     }
   }
+  
+  console.log(`✅ Successfully parsed ${txns.length} transactions`);
   return txns;
 };
