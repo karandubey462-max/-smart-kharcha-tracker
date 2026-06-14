@@ -68,6 +68,7 @@ jobs:
         with:
           name: smart-kharcha-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 90
 
       - name: Upload Release APK Artifact
         if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' }}
@@ -75,3 +76,34 @@ jobs:
         with:
           name: smart-kharcha-release-apk
           path: android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 90
+
+      - name: Create Release Tag
+        if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' }}
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: Smart Kharcha v1.0.${{ github.run_number }}
+          body: |
+            🎉 New APK Build with Native Storage Persistence
+            
+            ## What's Fixed
+            - ✅ Login persistence using native Android storage
+            - ✅ Data survives app kills and background removal
+            - ✅ No more repeated logins after signup
+            
+            ## Changes
+            - Added Capacitor Preferences for native storage
+            - Fixed localStorage deletion bug
+            - Improved token persistence
+            
+            ## Download
+            - **Release APK**: For production use (signed)
+            - **Debug APK**: For testing (unsigned)
+          files: |
+            android/app/build/outputs/apk/release/app-release.apk
+            android/app/build/outputs/apk/debug/app-debug.apk
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
