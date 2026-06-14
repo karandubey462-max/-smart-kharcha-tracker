@@ -8,10 +8,13 @@ import './App.css';
 // Apply persisted theme before first render
 let stored = {};
 try {
-  stored = JSON.parse(localStorage.getItem('kharcha-store') || '{}');
+  const storedData = localStorage.getItem('kharcha-store');
+  if (storedData) {
+    stored = JSON.parse(storedData);
+  }
 } catch (err) {
-  console.error('Failed to read saved app state', err);
-  localStorage.removeItem('kharcha-store');
+  console.error('Failed to read saved app state - using defaults', err);
+  // Don't remove the store - let Zustand's persist middleware handle recovery
 }
 const theme = stored?.state?.theme || 'dark';
 document.documentElement.setAttribute('data-theme', theme);

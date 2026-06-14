@@ -411,9 +411,16 @@ const useStore = create(
     }),
     {
       name: 'kharcha-store',
-      onRehydrateStorage: (state) => (restoredState, error) => {
-        if (error) console.error('Failed to restore saved session', error);
-        (restoredState || state)?.setHasHydrated(true);
+      onRehydrateStorage: (state) => {
+        return (restoredState, error) => {
+          if (error) {
+            console.error('Failed to restore saved session', error);
+            // Don't clear the store - just mark as hydrated and use defaults
+          } else {
+            console.log('✅ Session restored successfully');
+          }
+          (restoredState || state)?.setHasHydrated(true);
+        };
       },
       partialize: (s) => ({
         theme: s.theme,
